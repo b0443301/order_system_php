@@ -98,7 +98,6 @@ if ($command === 'version'){
 		}
 	}
 	
-	
 	if($result === 'register_fail'){
 		$jsonArray = array('result' => $result);
 		echo json_encode($jsonArray);
@@ -198,25 +197,27 @@ if ($command === 'version'){
 	if(!isset($result)){
 		$statement = $connect->query('SELECT rid FROM register WHERE account = '.'\''.$account.'\''.' ORDER BY rid DESC LIMIT 1');
 		foreach($statement as $row){
-			$result = 'select_store_success';
 			$rid = $row['rid'];
 			$storename = '';
 			$telephone = '';
 			$address = '';
 			$statement = $connect->query('SELECT * FROM store WHERE rid = '.'\''.$rid.'\''.' ORDER BY sid DESC LIMIT 1');
 			foreach($statement as $row){
+				$result = 'select_store_success';
 				$sid = $row['sid'];
 				$storename = $row['storename'];
 				$telephone = $row['telephone'];
 				$address = $row['address'];
 				$item = [];
 				$statement = $connect->query('SELECT * FROM item WHERE sid = '.'\''.$sid.'\'');
-				
 				foreach($statement as $row){
 					array_push($item,$row['itemname']);
 					array_push($item,$row['itemprice']);
 				}
 			}
+		}
+		if(!isset($result)){
+			$result = 'select_store_no_data';
 		}
 	}
 	
@@ -227,6 +228,9 @@ if ($command === 'version'){
 	}else if($result === 'select_store_fail'){
 		$jsonArray = array('result' => $result);
 		echo json_encode($jsonArray);		
+	}else if($result === 'select_store_no_data'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);
 	}else if($result === 'select_store_success'){
 		$jsonArray = array('result' => $result, 'storename' => $storename, 'telephone' => $telephone, 'address' => $address, 'item' => $item);
 		echo json_encode($jsonArray);
@@ -253,21 +257,38 @@ if ($command === 'version'){
 	if(!isset($result)){
 		$statement = $connect->query('SELECT rid FROM register WHERE account = '.'\''.$account.'\''.' ORDER BY rid DESC LIMIT 1');
 		foreach($statement as $row){
-			$rid = $row['rid'];
-			$result = 'update_store_success';
-			$statement = $connect->query('UPDATE store SET storename = '.'\''.$storename.'\','.' telephone = '.'\''.$telephone.'\','.' address = '.'\''.$address.'\''.' WHERE rid = '.'\''.$rid.'\'');
-			if(isset($_GET['name']) and isset($_GET['price'])){
-				$name = $_GET['name'];
-				$price = $_GET['price'];
-				$statement = $connect->query('SELECT sid FROM store WHERE rid = '.'\''.$rid.'\''.' ORDER BY sid DESC LIMIT 1');
-				foreach($statement as $row){
+			$rid = $row['rid'];	
+			$statement = $connect->query('SELECT sid FROM store WHERE rid = '.'\''.$rid.'\''.' ORDER BY rid DESC LIMIT 1');
+			foreach($statement as $row){
+				$sid = $row['sid'];
+				$result = 'update_store_success';
+				$statement = $connect->query('UPDATE store SET storename = '.'\''.$storename.'\','.' telephone = '.'\''.$telephone.'\','.' address = '.'\''.$address.'\''.' WHERE rid = '.'\''.$rid.'\'');
+				if(isset($_GET['name']) and isset($_GET['price'])){
 					$itemid = '0';
-					$sid = $row['sid'];
+					$name = $_GET['name'];
+					$price = $_GET['price'];
 					for($i=0; $i<count($name); $i++){
 						$statement = $connect->query('INSERT INTO item VALUES (\''.$itemid.'\',\''.$name[$i].'\',\''.$price[$i].'\',\''.$sid.'\')');
 					}
 				}
 			}
+			if(!isset($result)){
+				$sid = '0';
+				$result = 'update_store_new_data';
+				$statement = $connect->query('INSERT INTO store VALUES (\''.$sid.'\',\''.$storename.'\',\''.$telephone.'\',\''.$address.'\',\''.$rid.'\')');
+				echo 'INSERT INTO store VALUES (\''.$sid.'\',\''.$storename.'\',\''.$telephone.'\',\''.$address.'\',\''.$rid.'\')';
+				if(isset($_GET['name']) and isset($_GET['price'])){
+					$itemid = '0';
+					$name = $_GET['name'];
+					$price = $_GET['price'];
+					for($i=0; $i<count($name); $i++){
+						$statement = $connect->query('INSERT INTO item VALUES (\''.$itemid.'\',\''.$name[$i].'\',\''.$price[$i].'\',\''.$sid.'\')');
+					}
+				}
+			}
+		}
+		if(!isset($result)){
+			$result = 'update_store_user_not_found';
 		}
 	}
 	
@@ -276,6 +297,9 @@ if ($command === 'version'){
 		$jsonArray = array('result' => $result);
 		echo json_encode($jsonArray);		
 	}else if($result === 'update_store_fail'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);		
+	}else if($result === 'update_store_new_data'){
 		$jsonArray = array('result' => $result);
 		echo json_encode($jsonArray);		
 	}else if($result === 'update_store_success'){
@@ -372,6 +396,24 @@ if ($command === 'version'){
 		echo json_encode($jsonArray);
 	}else if($result === 'update_feeder_success'){
 		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);
+	}
+}else if($command === 'select_store_list'){
+	$connect = new PDO('mysql:host=localhost;dbname=order_system;charset=utf8', 'osadmin', '0983451956');
+	$statement = $connect->query('SELECT storename FROM store');
+	
+	$storename = [];
+	$result = 'select_store_list_no_data';
+	foreach($statement as $row){
+		$result = 'select_store_list_success';
+		array_push($storename, $row['storename']);
+	}
+	
+	if($result === 'select_store_list_no_data'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);		
+	}else if($result === 'select_store_list_success'){
+		$jsonArray = array('result' => $result, 'storename' => $storename);
 		echo json_encode($jsonArray);
 	}
 }

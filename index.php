@@ -52,6 +52,9 @@ if ($command === 'version'){
 	if($result === 'login_fail'){
 		$jsonArray = array('result' => $result);
 		echo json_encode($jsonArray);
+	}else if($result === 'login_need_register'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);
 	}else if($result === 'login_success'){
 		$jsonArray = array('result' => $result, 'session' => $session);
 		echo json_encode($jsonArray);
@@ -299,7 +302,7 @@ if ($command === 'version'){
 				$statement = $connect->query('SELECT storename FROM store WHERE sid = '.'\''.$sid.'\''.' ORDER BY sid DESC LIMIT 1');
 				foreach($statement as $row){
 					$result = 'select_feeder_success';
-					$store = $row['storename'];
+					$storename = $row['storename'];
 				}
 			}
 			if(!isset($result)){
@@ -321,7 +324,7 @@ if ($command === 'version'){
 		$jsonArray = array('result' => $result);
 		echo json_encode($jsonArray);
 	}else if($result === 'select_feeder_success'){
-		$jsonArray = array('result' => $result, 'store' => $store);
+		$jsonArray = array('result' => $result, 'storename' => $storename);
 		echo json_encode($jsonArray);
 	}
 	
@@ -329,10 +332,10 @@ if ($command === 'version'){
 	if(isset($_GET['account'])){
 		$account = $_GET['account'];
 	}
-	if(isset($_GET['store'])){
-		$store = $_GET['store'];
+	if(isset($_GET['storename'])){
+		$storename = $_GET['storename'];
 	}
-	if((!isset($account)) or (!isset($store))){
+	if((!isset($account)) or (!isset($storename))){
 		$result = 'update_feeder_fail';
 	}
 	
@@ -342,7 +345,7 @@ if ($command === 'version'){
 		$statement = $connect->query('SELECT rid FROM register WHERE account = '.'\''.$account.'\''.' ORDER BY rid DESC LIMIT 1');
 		foreach($statement as $row){
 			$rid = $row['rid'];
-			$statement = $connect->query('SELECT sid FROM store WHERE storename = '.'\''.$store.'\''.' ORDER BY sid DESC LIMIT 1');
+			$statement = $connect->query('SELECT sid FROM store WHERE storename = '.'\''.$storename.'\''.' ORDER BY sid DESC LIMIT 1');
 			foreach($statement as $row){
 				$sid = $row['sid'];
 				$fid = '0';

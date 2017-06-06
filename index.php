@@ -416,6 +416,46 @@ if ($command === 'version'){
 		$jsonArray = array('result' => $result, 'storename' => $storename);
 		echo json_encode($jsonArray);
 	}
+}else if($command === 'select_item_list'){
+	if(isset($_GET['storename'])){
+		$storename = $_GET['storename'];
+	}
+	if(!isset($storename)){
+		$result = 'select_item_list_fail';
+	}
+	
+	if(!isset($result)){
+			$connect = new PDO('mysql:host=localhost;dbname=order_system;charset=utf8', 'osadmin', '0983451956');
+		$statement = $connect->query('SELECT sid FROM store WHERE storename = '.'\''.$storename.'\''.' ORDER BY sid DESC LIMIT 1');
+		foreach($statement as $row){
+			$sid = $row['sid'];
+			$result = 'select_item_list_no_data';
+			$item = [];
+			$statement = $connect->query('SELECT * FROM item WHERE sid = '.$sid);
+			foreach($statement as $row){
+				$result = 'select_item_list_success';
+				array_push($item,$row['itemname']);
+				array_push($item,$row['itemprice']);
+			}
+		}
+		if(!isset($result)){
+			$result = 'select_item_list_store_not_found';
+		}
+	}
+	
+	if($result === 'select_item_list_fail'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);		
+	}else if($result === 'select_item_list_no_data'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);	
+	}else if($result === 'select_item_list_store_not_found'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);	
+	}else if($result === 'select_item_list_success'){
+		$jsonArray = array('result' => $result, 'item' => $item);
+		echo json_encode($jsonArray);
+	}
 }
 
 ?>

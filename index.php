@@ -524,12 +524,12 @@ if ($command === 'version'){
 		$jsonArray = array('result' => $result);
 		echo json_encode($jsonArray);
 	}
-}else if($command === 'select_dinner_by_account'){
+}else if($command === 'select_dinner_for_order'){
 	if(isset($_GET['account'])){
 		$account = $_GET['account'];
 	}
 	if(!isset($account)){
-		$result = 'select_dinner_by_account_fail';
+		$result = 'select_dinner_for_order_fail';
 	}
 	
 	if(!isset($result)){
@@ -542,13 +542,13 @@ if ($command === 'version'){
 			$number = [];
 			$statement = $connect->query('SELECT * FROM dinner WHERE rid = '.'\''.$rid.'\''.' and success = false');
 			foreach($statement as $row){
-				$result = 'select_dinner_by_account_success';
+				$result = 'select_dinner_for_order_success';
 				array_push($sid,$row['sid']);
 				array_push($itemid,$row['itemid']);
 				array_push($number,$row['number']);
 			}
 			if(!isset($result)){
-				$result = 'select_dinner_by_account_no_data';
+				$result = 'select_dinner_for_order_no_data';
 			}else{
 				$storename = [];
 				$itemname = [];
@@ -567,22 +567,170 @@ if ($command === 'version'){
 			}
 		}
 		if(!isset($result)){
-			$result = 'select_dinner_by_account_user_not_found';
+			$result = 'select_dinner_for_order_user_not_found';
 		}
 	}
 	
-	if($result === 'select_dinner_by_account_fail'){
+	if($result === 'select_dinner_for_order_fail'){
 		$jsonArray = array('result' => $result);
 		echo json_encode($jsonArray);		
-	}else if($result === 'select_dinner_by_account_no_data'){
+	}else if($result === 'select_dinner_for_order_no_data'){
 		$jsonArray = array('result' => $result);
 		echo json_encode($jsonArray);	
-	}else if($result === 'select_dinner_by_account_user_not_found'){
+	}else if($result === 'select_dinner_for_order_user_not_found'){
 		$jsonArray = array('result' => $result);
 		echo json_encode($jsonArray);	
-	}else if($result === 'select_dinner_by_account_success'){
+	}else if($result === 'select_dinner_for_order_success'){
 		$jsonArray = array('result' => $result, 'storename' => $storename, 'itemname' => $itemname, 'number' => $number);
 		echo json_encode($jsonArray);
+	}
+}else if($command === 'select_dinner_for_store'){
+	if(isset($_GET['account'])){
+		$account = $_GET['account'];
+	}
+	if(!isset($account)){
+		$result = 'select_dinner_for_store_fail';
+	}
+	
+	if(!isset($result)){
+		$connect = new PDO('mysql:host=localhost;dbname=order_system;charset=utf8', 'osadmin', '0983451956');
+		$statement = $connect->query('SELECT rid FROM register WHERE account = '.'\''.$account.'\''.' ORDER BY rid DESC LIMIT 1');
+		foreach($statement as $row){
+			$rid = $row['rid'];
+			$statement = $connect->query('SELECT sid FROM store WHERE rid = '.'\''.$rid.'\''.' ORDER BY sid DESC LIMIT 1');
+			foreach($statement as $row){
+				$sid = $row['sid'];
+				$ridList = [];
+				$itemid = [];
+				$number = [];
+				$statement = $connect->query('SELECT * FROM dinner WHERE sid = '.'\''.$sid.'\''.' and success = false');
+				foreach($statement as $row){
+					$result = 'select_dinner_for_store_success';
+					array_push($ridList,$row['rid']);
+					array_push($itemid,$row['itemid']);
+					array_push($number,$row['number']);
+				}
+				if(!isset($result)){
+					$result = 'select_dinner_for_store_no_data';
+				}else{
+					$account = [];
+					$itemname = [];
+					foreach($ridList as $e){
+						$statement = $connect->query('SELECT account FROM register WHERE rid = '.'\''.$e.'\''.' ORDER BY rid DESC LIMIT 1');
+						foreach($statement as $row){
+							array_push($account,$row['account']);
+						}
+					}
+					foreach($itemid as $e){
+						$statement = $connect->query('SELECT itemname FROM item WHERE itemid = '.'\''.$e.'\''.' ORDER BY itemid DESC LIMIT 1');
+						foreach($statement as $row){
+							array_push($itemname,$row['itemname']);
+						}
+					}
+				}	
+						
+			}
+			if(!isset($result)){
+				$result = 'select_dinner_for_store_store_not_found';
+			}
+		}
+		if(!isset($result)){
+			$result = 'select_dinner_for_store_user_not_found';
+		}
+	}
+	
+	if($result === 'select_dinner_for_store_fail'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);		
+	}else if($result === 'select_dinner_for_store_no_data'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);	
+	}else if($result === 'select_dinner_for_store_store_not_found'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);	
+	}else if($result === 'select_dinner_for_store_user_not_found'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);	
+	}else if($result === 'select_dinner_for_store_success'){
+		$jsonArray = array('result' => $result, 'account' => $account, 'itemname' => $itemname, 'number' => $number);
+		echo json_encode($jsonArray);
+	}
+}else if($command === 'checkout_dinner_for_store'){
+	if(isset($_GET['useraccount'])){
+		$useraccount = $_GET['useraccount'];
+	}
+	if(isset($_GET['storeaccount'])){
+		$storeaccount = $_GET['storeaccount'];
+	}
+	if(isset($_GET['item'])){
+		$item = $_GET['item'];
+	}
+	if(isset($_GET['number'])){
+		$number = $_GET['number'];
+	}
+	if((!isset($useraccount)) or (!isset($storeaccount)) or (!isset($item)) or (!isset($number))){
+		$result = 'checkout_dinner_for_store_fail';
+	}
+	
+	if(!isset($result)){
+		$connect = new PDO('mysql:host=localhost;dbname=order_system;charset=utf8', 'osadmin', '0983451956');
+		$statement = $connect->query('SELECT rid FROM register WHERE account = '.'\''.$storeaccount.'\''.' ORDER BY rid DESC LIMIT 1');
+		foreach($statement as $row){			
+			$rid = $row['rid'];
+			$statement = $connect->query('SELECT sid FROM store WHERE rid = '.'\''.$rid.'\''.' ORDER BY sid DESC LIMIT 1');
+			foreach($statement as $row){
+				$sid = $row['sid'];
+				$statement = $connect->query('SELECT rid FROM register WHERE account = '.'\''.$useraccount.'\''.' ORDER BY rid DESC LIMIT 1');
+				foreach($statement as $row){
+					$rid = $row['rid'];
+					$statement = $connect->query('SELECT itemid FROM item WHERE itemname = '.'\''.$item.'\''.' AND sid = '.'\''.$sid.'\''.' ORDER BY sid DESC LIMIT 1');
+					foreach($statement as $row){
+						$itemid = $row['itemid'];
+						$statement = $connect->query('SELECT did FROM dinner WHERE rid = '.'\''.$rid.'\''.' AND sid = '.'\''.$sid.'\''.' AND itemid = '.'\''.$itemid.'\''.' AND number = '.'\''.$number.'\''.' AND success = False ORDER BY sid DESC LIMIT 1');
+						foreach($statement as $row){
+							$did = $row['did'];
+							$result = 'checkout_dinner_for_store_success';
+							$statement = $connect->query('UPDATE dinner SET success = True WHERE did = '.'\''.$did.'\'');
+						}
+						if(!isset($result)){
+							$result = 'checkout_dinner_for_store_dinner_not_found';
+						}						
+					}
+					if(!isset($result)){
+						$result = 'checkout_dinner_for_store_item_not_found';
+					}					
+				}
+				if(!isset($result)){
+					$result = 'checkout_dinner_for_store_user_not_found';					
+				}			
+			}
+			if(!isset($result)){
+				$result = 'checkout_dinner_for_store_store_not_found';
+			}
+		}
+		if(!isset($result)){
+			$result = 'checkout_dinner_for_store_user_not_found';
+		}		
+	}
+	
+	if($result === 'checkout_dinner_for_store_fail'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);		
+	}else if($result === 'checkout_dinner_for_store_success'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);	
+	}else if($result === 'checkout_dinner_for_store_dinner_not_found'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);	
+	}else if($result === 'checkout_dinner_for_store_item_not_found'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);	
+	}else if($result === 'checkout_dinner_for_store_user_not_found'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);	
+	}else if($result === 'checkout_dinner_for_store_store_not_found'){
+		$jsonArray = array('result' => $result);
+		echo json_encode($jsonArray);	
 	}
 }
 
